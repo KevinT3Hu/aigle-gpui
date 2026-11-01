@@ -125,6 +125,7 @@ pub struct WgpuSurfaceConfig {
 }
 
 struct WgpuPipelines {
+    native_holes: wgpu::RenderPipeline,
     quads: wgpu::RenderPipeline,
     shadows: wgpu::RenderPipeline,
     path_rasterization: wgpu::RenderPipeline,
@@ -792,6 +793,23 @@ impl WgpuRendererCore {
             &shader_module,
         );
 
+        let native_holes = create_pipeline(
+            "native_surface_holes",
+            "vs_quad",
+            "fs_native_surface_hole",
+            &layouts.globals,
+            &layouts.instances,
+            None,
+            wgpu::PrimitiveTopology::TriangleStrip,
+            &[Some(wgpu::ColorTargetState {
+                format: surface_format,
+                blend: Some(wgpu::BlendState::REPLACE),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            1,
+            &shader_module,
+        );
+
         let shadows = create_pipeline(
             "shadows",
             "vs_shadow",
@@ -926,6 +944,7 @@ impl WgpuRendererCore {
         );
 
         WgpuPipelines {
+            native_holes,
             quads,
             shadows,
             path_rasterization,
@@ -1518,12 +1537,31 @@ impl WgpuRendererCore {
 
             for batch in scene.batches() {
                 match batch {
-                    PrimitiveBatch::Quads(range) => self.draw_instances(
-                        &instance_bindings.quads,
-                        &self.resources().pipelines.quads,
-                        instance_range(range),
-                        &mut pass,
-                    ),
+                    PrimitiveBatch::Quads(range) => {
+                        // Preserve paint order while keeping ordinary quads batched.
+                        let mut start = range.start;
+                        while start < range.end {
+                            let hole = scene.quads[start].background.is_native_surface_hole();
+                            let mut end = start + 1;
+                            while end < range.end
+                                && scene.quads[end].background.is_native_surface_hole() == hole
+                            {
+                                end += 1;
+                            }
+                            let pipeline = if hole {
+                                &self.resources().pipelines.native_holes
+                            } else {
+                                &self.resources().pipelines.quads
+                            };
+                            self.draw_instances(
+                                &instance_bindings.quads,
+                                pipeline,
+                                instance_range(start..end),
+                                &mut pass,
+                            );
+                            start = end;
+                        }
+                    }
                     PrimitiveBatch::Shadows(range) => self.draw_instances(
                         &instance_bindings.shadows,
                         &self.resources().pipelines.shadows,

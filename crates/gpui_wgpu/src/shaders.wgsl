@@ -1360,3 +1360,11 @@ fn fs_surface(input: SurfaceVarying) -> @location(0) vec4<f32> {
 
     return ycbcr_to_RGB * y_cb_cr;
 }
+
+// Native child surfaces sit below the parent window. Clear through ancestor UI
+// backgrounds, retaining the normal GPUI scissor/content mask and paint order.
+@fragment
+fn fs_native_surface_hole(input: QuadVarying) -> @location(0) vec4<f32> {
+    if (any(input.clip_distances < vec4<f32>(0.0))) { discard; }
+    return vec4<f32>(0.0);
+}
