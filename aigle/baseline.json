@@ -1,0 +1,19 @@
+{
+  "snapshot_version": "0.3.10",
+  "upstream": "https://github.com/zed-industries/zed.git",
+  "zed_revision": "08cbb88a152c3751a43e853425a70e9f631a5918",
+  "crates": {
+    "gpui-pre": {
+      "path": "crates/gpui",
+      "sha256": "df4b5f8d0c278308df2f11e0bfe0212dd77d7848ce1bdc4b9d513334414396f6"
+    },
+    "gpui-pre-linux": {
+      "path": "crates/gpui_linux",
+      "sha256": "7c6ffd2dce7b75cce0bb3382994912f84c2a05389a4a236bb8bd72cb098fc083"
+    },
+    "gpui-pre-wgpu": {
+      "path": "crates/gpui_wgpu",
+      "sha256": "ce693915768aae38bf788f245af75aae78e3e1179245860fc80ce831d0a8f74e"
+    }
+  }
+}

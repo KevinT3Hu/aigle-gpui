@@ -1,3 +1,4 @@
+// Modified for gpui-pre (snapshot of zed@08cbb88): adapt device queues and sRGB detection to wgpu 30.0.1.
 use crate::{CompositorGpuHint, DeviceErrorState, WgpuAtlas, WgpuContext};
 use anyhow::{Context as _, Result};
 use bytemuck::{Pod, Zeroable};
@@ -392,7 +393,7 @@ impl WgpuRenderer {
                 surface_caps
                     .formats
                     .iter()
-                    .find(|format| !format.has_srgb_suffix())
+                    .find(|format| !format.is_srgb())
                     .copied()
             })
             .or_else(|| surface_caps.formats.first().copied())
