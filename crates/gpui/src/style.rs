@@ -714,6 +714,7 @@ impl Style {
         if background_color.is_some_and(|color| !color.is_transparent()) {
             let mut border_color = match background_color {
                 Some(color) => match color.tag {
+                    crate::color::BackgroundTag::NativeSurfaceHole => crate::Hsla::default(),
                     BackgroundTag::Solid
                     | BackgroundTag::PatternSlash
                     | BackgroundTag::Checkerboard => color.solid,

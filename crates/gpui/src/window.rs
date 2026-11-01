@@ -4690,6 +4690,21 @@ impl Window {
         }
     }
 
+    /// Punch through previously drawn UI backgrounds for a native subsurface.
+    /// Later GPUI content (tool handles, menus, text) is composed above the hole.
+    /// Requires a transparent window and the wgpu native-hole pipeline.
+    pub fn paint_native_surface_hole(&mut self, bounds: Bounds<Pixels>) {
+        self.paint_quad(crate::fill(
+            bounds,
+            crate::Background::native_surface_hole(),
+        ));
+    }
+
+    /// Backend-owned handles used by native child surfaces without borrowing raw pointers.
+    pub fn native_surface_owner(&self) -> Option<std::sync::Arc<dyn std::any::Any + Send + Sync>> {
+        self.platform_window.native_surface_owner()
+    }
+
     /// Paint one or more quads into the scene for the next frame at the current stacking context.
     /// Quads are colored rectangular regions with an optional background, border, and corner radius.
     /// see [`fill`], [`outline`], and [`quad`] to construct this type.

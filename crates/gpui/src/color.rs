@@ -747,6 +747,7 @@ pub(crate) enum BackgroundTag {
     LinearGradient = 1,
     PatternSlash = 2,
     Checkerboard = 3,
+    NativeSurfaceHole = 4,
 }
 
 /// A color space for color interpolation.
@@ -789,6 +790,7 @@ pub struct Background {
 impl std::fmt::Debug for Background {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self.tag {
+            BackgroundTag::NativeSurfaceHole => write!(f, "NativeSurfaceHole"),
             BackgroundTag::Solid => write!(f, "Solid({:?})", self.solid),
             BackgroundTag::LinearGradient => write!(
                 f,
@@ -908,6 +910,20 @@ impl LinearColorStop {
 }
 
 impl Background {
+    /// A compositor hole. Unlike transparent alpha blending, this replaces the
+    /// destination with transparent pixels at this exact paint order.
+    pub fn native_surface_hole() -> Self {
+        Self {
+            tag: BackgroundTag::NativeSurfaceHole,
+            ..Default::default()
+        }
+    }
+
+    /// Whether the renderer must clear previously drawn pixels for a native child.
+    pub fn is_native_surface_hole(&self) -> bool {
+        self.tag == BackgroundTag::NativeSurfaceHole
+    }
+
     /// Returns the solid color if this is a solid background, None otherwise.
     pub fn as_solid(&self) -> Option<Hsla> {
         if self.tag == BackgroundTag::Solid {
@@ -939,6 +955,7 @@ impl Background {
     /// Returns whether the background color is transparent.
     pub fn is_transparent(&self) -> bool {
         match self.tag {
+            BackgroundTag::NativeSurfaceHole => false,
             BackgroundTag::Solid => self.solid.is_transparent(),
             BackgroundTag::LinearGradient => self.colors.iter().all(|c| c.color.is_transparent()),
             BackgroundTag::PatternSlash => self.solid.is_transparent(),

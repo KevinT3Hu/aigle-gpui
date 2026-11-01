@@ -1222,6 +1222,13 @@ pub enum TextInputStateChange {
 
 #[expect(missing_docs)]
 pub trait PlatformWindow: HasWindowHandle + HasDisplayHandle {
+    /// Owned backend surface/connection handles for native child rendering.
+    /// Wayland supplies `(wayland_client::Connection, WlSurface)`; other backends
+    /// return None. Holding this owner keeps the display connection alive.
+    fn native_surface_owner(&self) -> Option<std::sync::Arc<dyn std::any::Any + Send + Sync>> {
+        None
+    }
+
     fn bounds(&self) -> Bounds<Pixels>;
     fn is_maximized(&self) -> bool;
     fn window_bounds(&self) -> WindowBounds;
